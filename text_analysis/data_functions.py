@@ -11,11 +11,105 @@ import numpy as np
 import tomotopy as tp
 import nltk
 import en_core_web_md
+import pytesseract
+from pdf2image import pdfinfo_from_path, convert_from_path
+
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
 # Load language data products
 
 nlp = en_core_web_md.load()
 stopwords = nltk.corpus.stopwords.words('english')
+
+### OCR functions
+
+import pytesseract
+from pdf2image import pdfinfo_from_path, convert_from_path
+
+# Create 
+
+def pdf_to_text_files(pdf_path, lang = "eng"):
+    """
+    Convert a pdf to text files for each page.
+    
+    Args:
+    pdf_path (str): The path to the pdf file.
+    lang (str): The language of the text in the pdf. Default is "eng" for English.
+
+    Returns:
+        None
+    """
+    print(f"Processing {pdf_path} to images...")
+    info = pdfinfo_from_path(pdf_path, userpw=None, poppler_path=None)
+    maxPages = info["Pages"]
+    print(f"Found {maxPages} pages. This document will be processed in {maxPages//10+1} batches of 10 pages.")
+    for page in range(1, maxPages+1, 10) : 
+        images = convert_from_path(pdf_path, dpi=200, first_page=page, last_page = min(page+10-1,maxPages))
+
+        print(f"Processing pages {page} to {min(page+10-1,maxPages)} of {pdf_path} to text...")
+        for pageNum,image in enumerate(images):
+            text = pytesseract.image_to_string(image,lang='eng')
+            print(f"Converted page {page+pageNum} to text (length = {len(text)})")
+            with open(f'{pdf_path[:-4]}_page{page+pageNum}.txt', 'w') as the_file:
+                the_file.seek(0)
+                the_file.write(text)
+
+def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
+    """
+    Clean the text files created from a pdf.
+
+    Args:
+    pdf_path (str): The path to the pdf file.
+    document_level (str): The level of the document to clean. Options are "page", "paragraph", or "sentence". Default is "paragraph".
+
+    Returns:
+    clean_documents (pd.Series): The cleaned text documents
+    """
+    # Read the pages as a list of strings
+    txt_files = glob.glob(f"{pdf_path[:-4]}_page*.txt")
+    print(f"Found {len(txt_files)} text files for {pdf_path}.")
+    pages = []
+    for txt_file in txt_files:
+        with open(txt_file, 'r') as the_file:
+            text = the_file.read()
+            pages.append(text)
+    # If document_level == "page", then clean by replacing "\n" with " " 
+    if document_level == "page":
+        clean_documents = [page.replace("\n", " ") for page in pages]
+    if document_level == "paragraph":
+        # Combine the fill document
+        clean_documents = " ".join(pages)
+        # Split into paragraphs as "\n\n"
+        clean_documents = clean_documents.split("\n\n")
+        # Remove empty paragraphs
+        clean_documents = [paragraph for paragraph in clean_documents if len(paragraph) > 0]
+        # Replace \n with " " in each paragraph
+        clean_documents = [paragraph.replace("\n", " ") for paragraph in clean_documents]
+    if document_level == "sentence":
+        # Combine the fill document
+        clean_documents = " ".join(pages)
+        # Replace \n with " "
+        clean_documents = clean_documents.replace("\n", " ")
+        # Split the document into sentences
+        clean_documents = clean_documents.split(". ")
+        # Remove empty sentences
+        clean_documents = [sentence for sentence in clean_documents if len(sentence) > 0]
+    return pd.Series(clean_documents)
+
+def pdf_to_corpus(pdf_path, document_level = "paragraph", lang = "eng"):
+    """
+    Convert a pdf to text documents at a specified level.
+
+    Args:
+    pdf_path (str): The path to the pdf file.
+    document_level (str): The level of the document to clean. Options are "page", "paragraph", or "sentence". Default is "paragraph".
+    lang (str): The language of the text in the pdf. Default is "eng" for English.
+
+    Returns:
+    clean_documents (pd.Series): The cleaned text documents
+    """
+    pdf_to_text_files(pdf_path, lang)
+    return clean_pdf_text_files(pdf_path, document_level)
 
 ### LDA functions
 
