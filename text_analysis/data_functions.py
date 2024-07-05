@@ -10,15 +10,15 @@ import pandas as pd
 import numpy as np
 import tomotopy as tp
 import nltk
-import en_core_web_md
 import pytesseract
+import en_core_web_md
+import spacy
 from pdf2image import pdfinfo_from_path, convert_from_path
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
 # Load language data products
-
-nlp = en_core_web_md.load()
+nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
 
 ### OCR functions
