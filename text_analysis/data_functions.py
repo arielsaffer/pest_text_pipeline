@@ -12,6 +12,8 @@ import tomotopy as tp
 import nltk
 import pytesseract
 import en_core_web_md
+import glob
+import os
 import spacy
 from pdf2image import pdfinfo_from_path, convert_from_path
 
@@ -20,13 +22,14 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 # Load language data products
 nltk.download('stopwords')
 stopwords = nltk.corpus.stopwords.words('english')
+nlp = en_core_web_md.load()
 
 ### OCR functions
 
 import pytesseract
 from pdf2image import pdfinfo_from_path, convert_from_path
 
-# Create 
+# Function to convert a pdf to text files for each page
 
 def pdf_to_text_files(pdf_path, lang = "eng"):
     """
@@ -39,6 +42,13 @@ def pdf_to_text_files(pdf_path, lang = "eng"):
     Returns:
         None
     """
+    root_dir = os.path.dirname(pdf_path)
+    file_name = os.path.basename(pdf_path)
+
+    # Check for and create subfolder for text files
+    if not os.path.exists(f"{root_dir}/{file_name[:-4]}_text_files"):
+        os.makedirs(f"{root_dir}/{file_name[:-4]}_text_files")
+
     print(f"Processing {pdf_path} to images...")
     info = pdfinfo_from_path(pdf_path, userpw=None, poppler_path=None)
     maxPages = info["Pages"]
@@ -50,9 +60,14 @@ def pdf_to_text_files(pdf_path, lang = "eng"):
         for pageNum,image in enumerate(images):
             text = pytesseract.image_to_string(image,lang='eng')
             print(f"Converted page {page+pageNum} to text (length = {len(text)})")
-            with open(f'{pdf_path[:-4]}_page{page+pageNum}.txt', 'w') as the_file:
+            with open(f'{root_dir}/{file_name[:-4]}_text_files/{file_name[:-4]}_page{page+pageNum}.txt', 'w') as the_file:
                 the_file.seek(0)
                 the_file.write(text)
+
+    print(f"Text files created for {pdf_path}.")
+    return None
+
+# Function to clean the text files created from a pdf
 
 def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
     """
@@ -65,8 +80,12 @@ def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
     Returns:
     clean_documents (pd.Series): The cleaned text documents
     """
+
+    root_dir = os.path.dirname(pdf_path)
+    file_name = os.path.basename(pdf_path)
+    
     # Read the pages as a list of strings
-    txt_files = glob.glob(f"{pdf_path[:-4]}_page*.txt")
+    txt_files = glob.glob(f'{root_dir}/{file_name[:-4]}_text_files/{file_name[:-4]}_page*.txt')
     print(f"Found {len(txt_files)} text files for {pdf_path}.")
     pages = []
     for txt_file in txt_files:
@@ -94,7 +113,12 @@ def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
         clean_documents = clean_documents.split(". ")
         # Remove empty sentences
         clean_documents = [sentence for sentence in clean_documents if len(sentence) > 0]
-    return pd.Series(clean_documents)
+    clean_documents = pd.Series(clean_documents)
+    clean_documents.name = "Text"    
+    
+    return clean_documents
+
+# Wrap both functions
 
 def pdf_to_corpus(pdf_path, document_level = "paragraph", lang = "eng"):
     """
