@@ -16,6 +16,15 @@ import glob
 import os
 import spacy
 from pdf2image import pdfinfo_from_path, convert_from_path
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.model_selection import KFold
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import ComplementNB
+from sklearn.tree import DecisionTreeClassifier
+import pickle
+
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
@@ -263,6 +272,60 @@ def keyword_search(text_data, keywords):
 ### Pest event functions
 
 # Detecting reports of pest events
+
+def train_model(data, text_col="Text", label_col="Target", vectorizer=TfidfVectorizer(), classifier=LinearSVC()):
+    """
+    Train a classification model on the given data.
+
+    Args:
+        data (pd.DataFrame): A pandas DataFrame containing the text data and labels.
+        text_col (str): The name of the column containing the text data. Default is "Text".
+        label_col (str): The name of the column containing the labels. Default is "Target".
+        vectorizer: The vectorizer to convert text data into vectors. Default is TfidfVectorizer().
+        clf: The classification model to train. Default is LinearSVC().
+
+    Returns:
+        tuple: A tuple containing the trained model and the vectorizer.
+    """
+    # 
+
+    # Split the data into text and labels
+    X = data[text_col]
+    y = data[label_col]
+    # Convert text data into vectors
+    vects = vectorizer.fit_transform(X)
+    # Train the classification model
+    classifier.fit(vects, y)
+    return classifier, vectorizer
+
+
+# Define a function to produce classification metrics
+def test_model(X, y, classifier, vectorizer):
+    """
+    Test a classification model on the given data.
+
+    Args:
+        X (pd.Series): A pandas Series containing the text data.
+        y (pd.Series): A pandas Series containing the labels.
+        clf: The classification model to test.
+        vectorizer: The vectorizer used to convert text data into vectors.
+
+    Returns:
+        tuple: A tuple containing the predictions and a dictionary of classification metrics.
+    """
+   # test model and calculate accuracy
+    vects_test = vectorizer.transform(X) 
+    # convert test docs to vectors based on what we learned from the training data
+    pred = classifier.predict(vects_test)
+
+    # calculate accuracy, precision, recall, and fscore based on pred output and ground truth labels (y_test)
+    accuracy = accuracy_score(y, pred)
+    prf = precision_recall_fscore_support(y, pred)
+    precision = prf[0][1]
+    recall = prf[1][1]
+    fscore = prf[2][1]
+    
+    return pred, {'accuracy' : accuracy, 'precision' : precision, 'recall' : recall, 'fscore' : fscore}
 
 
 # Extracting locations and geoparsing
