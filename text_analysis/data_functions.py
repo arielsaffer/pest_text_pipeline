@@ -24,6 +24,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import ComplementNB
 from sklearn.tree import DecisionTreeClassifier
 import pickle
+import time
 
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
@@ -327,22 +328,179 @@ def test_model(X, y, classifier, vectorizer):
     
     return pred, {'accuracy' : accuracy, 'precision' : precision, 'recall' : recall, 'fscore' : fscore}
 
+# Run train and test process over k-split data for each model 
+
+def model_testing(X, y, models, vectorizer, k = 10, random_state = 42):
+    """
+    Test multiple models using k-fold cross-validation.
+
+    Args:
+        X (pd.Series): A pandas Series containing the text data.
+        y (pd.Series): A pandas Series containing the labels.
+        models (list): A list of sklearn classification models to test.
+        vectorizer: The vectorizer used to convert text data into vectors.
+        k: The number of folds for k-fold cross-validation. Default is 10.
+        random_state: The random state for k-fold cross-validation. Default is 42.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing results of model testing.
+    """
+    kf = KFold(n_splits=k, shuffle=True, random_state=random_state)
+
+    
+    for model in models:
+
+        clf = model
+        acc_score = []
+        prec_score = []
+        rec_score = []
+        f_score = []
+
+        # this splits your data into 10 folds
+        for train_index, test_index in kf.split(X, y):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            # Train model 
+            vectorizer = TfidfVectorizer(stop_words='english', min_df=0.001, ngram_range=(1, 2))
+            # Transform training data into vectors
+            vects_train = vectorizer.fit_transform(X_train)
+            # Train the model
+            clf.fit(vects_train, y_train)
+
+            # Test model and calculate metrics
+            pred, scores_dict = test_model(X_test, y_test, clf, vectorizer)
+            
+            acc = scores_dict['accuracy']
+            prec = scores_dict['precision']
+            rec = scores_dict['recall']
+            f = scores_dict['fscore']
+
+            acc_score.append(acc)
+            prec_score.append(prec)
+            rec_score.append(rec)
+            f_score.append(f)
+
+        # Compute average and standard deviation of scores across folds
+            
+        avg_acc_score = sum(acc_score)/k
+        avg_prec_score = sum(prec_score)/k
+        avg_rec_score = sum(rec_score)/k
+        avg_f_score = sum(f_score)/k
+
+        sd_acc_score = np.std(acc_score)
+        sd_prec_score = np.std(prec_score)
+        sd_rec_score = np.std(rec_score)
+        sd_f_score = np.std(f_score)
+
+        results_table = results_table.append({
+            'model_name' : model.__class__,
+            'accuracy' : avg_acc_score,
+            'accuracy_sd' : sd_acc_score,
+            'precision' : avg_prec_score,
+            'precision_sd' : sd_prec_score,
+            'recall' : avg_rec_score,
+            'recall_sd' : sd_rec_score,
+            'fscore' : avg_f_score,
+            'fscore_sd' : sd_f_score
+            }, ignore_index=True)
+
+        # Print results summary for each model
+
+        print('Model : {}'.format(model))
+        
+        print('accuracy of each fold - {}'.format(acc_score))
+        print('Avg accuracy : {}, +/- {}'.format(avg_acc_score, sd_acc_score))
+        print('\n')
+
+        print('precision of each fold - {}'.format(prec_score))
+        print('Avg precision : {} +/- {}'.format(avg_prec_score, sd_prec_score))
+        print('\n')
+
+        print('recall of each fold - {}'.format(rec_score))
+        print('Avg recall : {} +/- {}'.format(avg_rec_score, sd_rec_score))
+        print('\n')
+
+        print('fscore of each fold - {}'.format(f_score))
+        print('Avg fscore : {} +/- {}'.format(avg_f_score, sd_f_score))
+        print('\n')
+
+        print('--------------------------------------------------------')
+    return results_table
+
 
 # Extracting locations and geoparsing
 
-def get_loc_ents(clean_text):
+# Extract location entities from text
+
+def get_loc_ents(text, origin = np.nan):
     """
-    Extract location entities (GPE and LOC) from the given text.
+    Given a post, return a list of unique locations mentioned in the post.
+    This includes: unique entities, entities neighboring entity context, 
+    and entities with post origin context.
 
     Args:
-        clean_text (str): Cleaned text to extract entities from.
+        text (str): The text of the post.
+        post_origin (str): The country of origin of the post, optional.
 
     Returns:
-        list: A list of location entities.
+        list: A list of unique locations mentioned in the post.
     """
-    NLP = nlp(clean_text)
-    EntText = [ent.text for ent in NLP.ents if ent.label_ in ["GPE","LOC"]]
-    return EntText
+    # Create NLP object
+    nlp = en_core_web_md.load()
+    doc = nlp(text)
+    # Get entities
+    ents = [ent.text for ent in doc.ents if ent.label_ in ["GPE","LOC"]]
+    # Get entity spans
+    spans = [(ent.start_char, ent.end_char) for ent in doc.ents if ent.label_ in ["GPE","LOC"]]
+    # Get the difference between the start of one entity and the end of the previous entity
+    spans_diff = [spans[i][0] - spans[i-1][1] for i in range(1,len(spans))]
+    # If EntSpan is less than 5, concatenate the two entities in EntText
+    ents_multi = [ents[i-1] + ", " + ents[i] for i in range(1,len(ents)) if spans_diff[i-1] < 5]
+    # Keep only unique entities in a single post
+    ents_unique = list(set(ents))
+    # Concat EntUnique and Country into a new column
+    if origin == origin:
+       ents_country = [ent + ", " + origin for ent in ents_unique]
+    else:
+        ents_country = []
+    return ents_unique, ents_multi, ents_country
+
+# Create dictionary of geocoded locations
+
+def geocode_locs(locs, geocoder, key):
+    """
+    Geocode a list of locations using a geocoder.
+    
+    Args:
+        locs (list): A list of locations to geocode.
+        geocoder: The geocoder to use.
+        key: The API key for the geocoder.
+
+    Returns:
+        dict: A dictionary of geocoded locations.
+    """
+    geo_loc_dict = {}
+    error_locs = []
+    i = 1
+
+    for loc in locs:
+        if loc == "":
+            continue
+        else:
+            result = geocoder.osm(loc, key)
+            geo_loc_dict[loc] = result
+            # Catch 502 errors and wait 5 seconds before trying again
+            if "ERROR" in result.status:
+                time.sleep(5)
+                result = geocoder.osm(loc, key)
+                geo_loc_dict[loc] = result
+                if "ERROR" in result.status:
+                    print(f"{i}. '{loc}' not found")
+                    error_locs.append(loc)
+                    i += 1
+                    continue
+    return geo_loc_dict, error_locs
 
 # Function to get country, state, or city from geocoder result
 # with KeyError and TypeError handling
