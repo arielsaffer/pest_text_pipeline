@@ -330,7 +330,7 @@ def test_model(X, y, classifier, vectorizer):
 
 # Run train and test process over k-split data for each model 
 
-def model_testing(X, y, models, vectorizer, k = 10, random_state = 42):
+def test_multiple_models(X, y, models, vectorizer, selection_metric = "fscore", k = 10, random_state = 42, verbose = False):
     """
     Test multiple models using k-fold cross-validation.
 
@@ -346,6 +346,15 @@ def model_testing(X, y, models, vectorizer, k = 10, random_state = 42):
         pd.DataFrame: A DataFrame containing results of model testing.
     """
     kf = KFold(n_splits=k, shuffle=True, random_state=random_state)
+
+    results_table = pd.DataFrame(
+    columns=[
+        'model', 
+        'accuracy', 'accuracy_sd', 
+        'precision', 'precision_sd',
+        'recall', 'recall_sd',
+        'fscore', 'fscore_sd',
+        ])
 
     
     for model in models:
@@ -393,8 +402,8 @@ def model_testing(X, y, models, vectorizer, k = 10, random_state = 42):
         sd_rec_score = np.std(rec_score)
         sd_f_score = np.std(f_score)
 
-        results_table = results_table.append({
-            'model_name' : model.__class__,
+        results_table = pd.concat([results_table, pd.DataFrame({
+            'model' : model,
             'accuracy' : avg_acc_score,
             'accuracy_sd' : sd_acc_score,
             'precision' : avg_prec_score,
@@ -403,29 +412,33 @@ def model_testing(X, y, models, vectorizer, k = 10, random_state = 42):
             'recall_sd' : sd_rec_score,
             'fscore' : avg_f_score,
             'fscore_sd' : sd_f_score
-            }, ignore_index=True)
+            }, index=[0]),], ignore_index=True) 
 
-        # Print results summary for each model
+        # Sort the result table by the selection metric
+        results_table = results_table.sort_values(by=selection_metric, ascending=False)
 
-        print('Model : {}'.format(model))
-        
-        print('accuracy of each fold - {}'.format(acc_score))
-        print('Avg accuracy : {}, +/- {}'.format(avg_acc_score, sd_acc_score))
-        print('\n')
+        if verbose == True:
+            # Print results summary for each model
 
-        print('precision of each fold - {}'.format(prec_score))
-        print('Avg precision : {} +/- {}'.format(avg_prec_score, sd_prec_score))
-        print('\n')
+            print('Model : {}'.format(model))
+            
+            print('accuracy of each fold - {}'.format(acc_score))
+            print('Avg accuracy : {}, +/- {}'.format(avg_acc_score, sd_acc_score))
+            print('\n')
 
-        print('recall of each fold - {}'.format(rec_score))
-        print('Avg recall : {} +/- {}'.format(avg_rec_score, sd_rec_score))
-        print('\n')
+            print('precision of each fold - {}'.format(prec_score))
+            print('Avg precision : {} +/- {}'.format(avg_prec_score, sd_prec_score))
+            print('\n')
 
-        print('fscore of each fold - {}'.format(f_score))
-        print('Avg fscore : {} +/- {}'.format(avg_f_score, sd_f_score))
-        print('\n')
+            print('recall of each fold - {}'.format(rec_score))
+            print('Avg recall : {} +/- {}'.format(avg_rec_score, sd_rec_score))
+            print('\n')
 
-        print('--------------------------------------------------------')
+            print('fscore of each fold - {}'.format(f_score))
+            print('Avg fscore : {} +/- {}'.format(avg_f_score, sd_f_score))
+            print('\n')
+
+            print('--------------------------------------------------------')
     return results_table
 
 
