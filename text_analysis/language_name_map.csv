@@ -1,0 +1,123 @@
+﻿OCR_LangCode,OCR_LanguageName,NLTK_Language
+afr,Afrikaans,
+amh,Amharic,
+ara,Arabic,arabic
+asm,Assamese,
+aze,Azerbaijani,azerbaijani
+aze_cyrl,Azerbaijani - Cyrilic,
+bel,Belarusian,
+ben,Bengali,bengali
+bod,Tibetan,
+bos,Bosnian,
+bre,Breton,
+bul,Bulgarian,
+cat,Catalan; Valencian,catalan
+ceb,Cebuano,
+ces,Czech,
+chi_sim,Chinese - Simplified,chinese
+chi_tra,Chinese - Traditional,chinese
+chr,Cherokee,
+cos,Corsican,
+cym,Welsh,
+dan,Danish,danish
+deu,German,
+deu_latf,German (Fraktur Latin),
+dzo,Dzongkha,
+ell,"Greek, Modern (1453-)",
+eng,English,english
+enm,"English, Middle (1100-1500)",english
+epo,Esperanto,
+equ,Math / equation detection module,
+est,Estonian,
+eus,Basque,
+fao,Faroese,
+fas,Persian,
+fil,Filipino (old - Tagalog),
+fin,Finnish,finnish
+fra,French,french
+frk,German - Fraktur (now deu_latf),german
+frm,"French, Middle (ca.1400-1600)",french
+fry,Western Frisian,
+gla,Scottish Gaelic,
+gle,Irish,
+glg,Galician,
+grc,"Greek, Ancient (to 1453) (contrib)",greek
+guj,Gujarati,
+hat,Haitian; Haitian Creole,
+heb,Hebrew,hebrew
+hin,Hindi,
+hrv,Croatian,
+hun,Hungarian,hungarian
+hye,Armenian,
+iku,Inuktitut,
+ind,Indonesian,indonesian
+isl,Icelandic,
+ita,Italian,italian
+ita_old,Italian - Old,italian
+jav,Javanese,
+jpn,Japanese,
+kan,Kannada,
+kat,Georgian,
+kat_old,Georgian - Old,
+kaz,Kazakh,kazakh
+khm,Central Khmer,
+kir,Kirghiz; Kyrgyz,
+kmr,Kurmanji (Kurdish - Latin Script),
+kor,Korean,
+kor_vert,Korean (vertical),
+lao,Lao,
+lat,Latin,
+lav,Latvian,
+lit,Lithuanian,
+ltz,Luxembourgish,
+mal,Malayalam,
+mar,Marathi,
+mkd,Macedonian,
+mlt,Maltese,
+mon,Mongolian,
+mri,Maori,
+msa,Malay,
+mya,Burmese,
+nep,Nepali,nepali
+nld,Dutch; Flemish,dutch
+nor,Norwegian,norwegian
+oci,Occitan (post 1500),
+ori,Oriya,
+osd,Orientation and script detection module,
+pan,Panjabi; Punjabi,
+pol,Polish,
+por,Portuguese,portuguese
+pus,Pushto; Pashto,
+que,Quechua,
+ron,Romanian; Moldavian; Moldovan,romanian
+rus,Russian,russian
+san,Sanskrit,
+sin,Sinhala; Sinhalese,
+slk,Slovak,
+slv,Slovenian,slovene
+snd,Sindhi,
+spa,Spanish; Castilian,spanish
+spa_old,Spanish; Castilian - Old,spanish
+sqi,Albanian,
+srp,Serbian,
+srp_latn,Serbian - Latin,
+sun,Sundanese,
+swa,Swahili,
+swe,Swedish,swedish
+syr,Syriac,
+tam,Tamil,
+tat,Tatar,
+tel,Telugu,
+tgk,Tajik,tajik
+tha,Thai,
+tir,Tigrinya,
+ton,Tonga,
+tur,Turkish,turkish
+uig,Uighur; Uyghur,
+ukr,Ukrainian,
+urd,Urdu,
+uzb,Uzbek,
+uzb_cyrl,Uzbek - Cyrilic,
+vie,Vietnamese,
+yid,Yiddish,
+yor,Yoruba,

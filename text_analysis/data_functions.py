@@ -20,9 +20,6 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from sklearn.model_selection import KFold
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import ComplementNB
-from sklearn.tree import DecisionTreeClassifier
 import pickle
 import time
 
@@ -31,8 +28,29 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 
 # Load language data products
 nltk.download('stopwords')
-stopwords = nltk.corpus.stopwords.words('english')
 nlp = en_core_web_md.load()
+lang_map = pd.read_csv("text_analysis/language_name_map.csv")
+
+### Helper functions
+
+def map_language(lang_name):
+    """
+    Map a language name to the corresponding language code and NLTK name.
+
+    Args:
+        lang_name (str): The name of the language.
+
+    Returns:
+        str: The language code.
+        str: The NLTK language name.
+    """
+    lang_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "OCR_LangCode"].values[0]
+    try:
+        nltk_lang = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "NLTK_Language"].values[0]
+    except IndexError:
+        nltk_lang = None
+    return lang_code, nltk_lang
+        
 
 ### OCR functions
 
@@ -165,13 +183,13 @@ def clean_tweet(text):
     return text
 
 
-def preprocess_text(text_data, lang = "english"):
+def preprocess_text(text_data, lang = None):
     """
     Preprocess the given text data into a list of strings.
 
     Args:
         data (pd.Series): A pandas Series containing text data.
-        lang (str): The language of the data. Default is "english".
+        lang (str): The language of the data used to remove stopwords.
 
     Returns:
         list: A list of strings.
@@ -179,8 +197,12 @@ def preprocess_text(text_data, lang = "english"):
     # Tokenize text data
     documents = text_data.str.lower().str.split()
     # Remove stopwords and punctuation
-    documents = documents.apply(lambda x: [tok for tok in x if tok.isalnum() and tok not in stopwords])
-    print("Text data preprocessed (tokenized, lowercased, stopwords removed).\n\n")
+    try:
+        stopwords = nltk.corpus.stopwords.words(lang)
+        documents = documents.apply(lambda x: [tok for tok in x if tok.isalnum() and tok not in stopwords])
+        print("Text data preprocessed (tokenized, lowercased, stopwords removed).\n\n")
+    except:
+        print(f"Stopwords not found for language '{lang}'. Text preprocessed (tokenized and lowercased).\n\n")
     return documents
 
 
@@ -231,12 +253,15 @@ def get_topics(model, num_words = 10):
 
     return pd.DataFrame({"Topic Number": topic_number, "Top Words": topic_words})
 
-def text_to_topics(text_data, lang = "english", num_topics = 20, num_iter = 10):
+def text_to_topics(text_data, lang = None, num_topics = 20, num_iter = 10):
     """
     This function takes in text data and returns the topics for each document.
 
     Args:
         data (pd.Series): A pandas Series containing text data.
+        lang (str): The language of the data used to remove stopwowrds.
+        num_topics (int): The number of topics to train the model on. Default is 20.
+        num_iter (int): The number of iterations to train the model for. Default is 10.
 
     Returns:
         pd.DataFrame: A DataFrame containing the topics for each document.
