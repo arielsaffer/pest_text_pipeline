@@ -11,7 +11,6 @@ import numpy as np
 import tomotopy as tp
 import nltk
 import pytesseract
-import en_core_web_md
 import glob
 import os
 import spacy
@@ -35,7 +34,7 @@ lang_map = pd.read_csv("text_analysis/language_name_map.csv")
 
 def map_language(lang_name):
     """
-    Map a language name to the corresponding language code and NLTK name.
+    Map a language name to the corresponding OCR language code, NLTK language name, and spaCy language code.
 
     Args:
         lang_name (str): The name of the language.
@@ -43,13 +42,20 @@ def map_language(lang_name):
     Returns:
         str: The language code.
         str: The NLTK language name.
+        str: The spaCy language code.
     """
-    lang_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "OCR_LangCode"].values[0]
+    ocr_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "OCR_LangCode"].values[0]
     try:
         nltk_lang = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "NLTK_Language"].values[0]
     except IndexError:
+        # If there's no nltk language, removing stopwords will be skipped
         nltk_lang = None
-    return lang_code, nltk_lang
+    try: 
+        spacy_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "Spacy_LangCode"].values[0]
+    except IndexError:
+        # If there's no spaCy code, use the multi-language pipeline
+        spacy_code = "xx"
+    return ocr_code, nltk_lang, spacy_code
         
 
 ### OCR functions
@@ -295,7 +301,9 @@ def keyword_search(text_data, keywords):
     return df.loc[df["Keywords Found"] == True]
 
 
-### Pest event functions
+#### Pest event functions
+
+### Classification
 
 # Detecting reports of pest events
 
@@ -467,7 +475,197 @@ def test_multiple_models(X, y, models, vectorizer, selection_metric = "fscore", 
     return results_table
 
 
-# Extracting locations and geoparsing
+### Extracting locations and geoparsing
+
+# Create the spaCy nlp object based on the language
+
+def create_lang_nlp(spacy_lang_code):
+    """
+    Create a spaCy nlp object based on the language.
+
+    Args:
+        lang (str): The language of the nlp object.
+
+    Returns:
+        spacy.lang: The spaCy nlp object.
+    """
+    # Maybe there is a cleaner way to do this?
+    if lang == "ca":
+    try:
+        nlp = ca_core_news_md.load()
+    except OSError:
+        spacy.cli.download("ca_core_news_md")
+        nlp = ca_core_news_md.load()
+
+    elif lang == "zh":
+        try:
+            nlp = zh_core_news_md.load()
+        except OSError:
+            spacy.cli.download("zh_core_news_md")
+            nlp = zh_core_news_md.load()
+
+    elif lang == "da":
+        try:
+            nlp = da_core_news_md.load()
+        except OSError:
+            spacy.cli.download("da_core_news_md")
+            nlp = da_core_news_md.load()
+
+    elif lang == "el":
+        try:
+            nlp = el_core_news_md.load()
+        except OSError:
+            spacy.cli.download("el_core_news_md")
+            nlp = el_core_news_md.load()
+
+    elif lang == "en":
+        try:
+            nlp = en_core_news_md.load()
+        except OSError:
+            spacy.cli.download("en_core_news_md")
+            nlp = en_core_news_md.load()
+
+    elif lang == "fi":
+        try:
+            nlp = fi_core_news_md.load()
+        except OSError:
+            spacy.cli.download("fi_core_news_md")
+            nlp = fi_core_news_md.load()
+
+    elif lang == "fr":
+        try:
+            nlp = fr_core_news_md.load()
+        except OSError:
+            spacy.cli.download("fr_core_news_md")
+            nlp = fr_core_news_md.load()
+
+    elif lang == "de":
+        try:
+            nlp = de_core_news_md.load()
+        except OSError:
+            spacy.cli.download("de_core_news_md")
+            nlp = de_core_news_md.load()
+
+    elif lang == "hr":
+        try:
+            nlp = hr_core_news_md.load()
+        except OSError:
+            spacy.cli.download("hr_core_news_md")
+            nlp = hr_core_news_md.load()
+
+    elif lang == "it":
+        try:
+            nlp = it_core_news_md.load()
+        except OSError:
+            spacy.cli.download("it_core_news_md")
+            nlp = it_core_news_md.load()
+
+    elif lang == "ja":
+        try:
+            nlp = ja_core_news_md.load()
+        except OSError:
+            spacy.cli.download("ja_core_news_md")
+            nlp = ja_core_news_md.load()
+
+    elif lang == "ko":
+        try:
+            nlp = ko_core_news_md.load()
+        except OSError:
+            spacy.cli.download("ko_core_news_md")
+            nlp = ko_core_news_md.load()
+
+    elif lang == "lt":
+        try:
+            nlp = lt_core_news_md.load()
+        except OSError:
+            spacy.cli.download("lt_core_news_md")
+            nlp = lt_core_news_md.load()
+
+    elif lang == "mk":
+        try:
+            nlp = mk_core_news_md.load()
+        except OSError:
+            spacy.cli.download("mk_core_news_md")
+            nlp = mk_core_news_md.load()
+
+    elif lang == "nl":
+        try:
+            nlp = nl_core_news_md.load()
+        except OSError:
+            spacy.cli.download("nl_core_news_md")
+            nlp = nl_core_news_md.load()
+
+    elif lang == "nb":
+        try:
+            nlp = nb_core_news_md.load()
+        except OSError:
+            spacy.cli.download("nb_core_news_md")
+            nlp = nb_core_news_md.load()
+
+    elif lang == "pl":
+        try:
+            nlp = pl_core_news_md.load()
+        except OSError:
+            spacy.cli.download("pl_core_news_md")
+            nlp = pl_core_news_md.load()
+
+    elif lang == "pt":
+        try:
+            nlp = pt_core_news_md.load()
+        except OSError:
+            spacy.cli.download("pt_core_news_md")
+            nlp = pt_core_news_md.load()
+
+    elif lang == "ro":
+        try:
+            nlp = ro_core_news_md.load()
+        except OSError:
+            spacy.cli.download("ro_core_news_md")
+            nlp = ro_core_news_md.load()
+
+    elif lang == "ru":
+        try:
+            nlp = ru_core_news_md.load()
+        except OSError:
+            spacy.cli.download("ru_core_news_md")
+            nlp = ru_core_news_md.load()
+
+    elif lang == "sl":
+        try:
+            nlp = sl_core_news_md.load()
+        except OSError:
+            spacy.cli.download("sl_core_news_md")
+            nlp = sl_core_news_md.load()
+
+    elif lang == "es":
+        try:
+            nlp = es_core_news_md.load()
+        except OSError:
+            spacy.cli.download("es_core_news_md")
+            nlp = es_core_news_md.load()
+
+    elif lang == "sv":
+        try:
+            nlp = sv_core_news_md.load()
+        except OSError:
+            spacy.cli.download("sv_core_news_md")
+            nlp = sv_core_news_md.load()
+
+    elif lang == "uk":
+        try:
+            nlp = uk_core_news_md.load()
+        except OSError:
+            spacy.cli.download("uk_core_news_md")
+            nlp = uk_core_news_md.load()
+
+    else:
+        try:
+            nlp = spacy.load("xx_ent_wiki_sm")
+        except OSError:
+            spacy.cli.download("xx_ent_wiki_sm")
+            nlp = spacy.load("xx_ent_wiki_sm")
+
+    return nlp
 
 # Extract location entities from text
 
