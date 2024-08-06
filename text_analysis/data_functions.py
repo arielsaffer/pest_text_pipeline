@@ -477,9 +477,9 @@ def test_multiple_models(X, y, models, vectorizer, selection_metric = "fscore", 
 
 ### Extracting locations and geoparsing
 
-# Create the spaCy nlp object based on the language
+# Load the spaCy nlp object based on the language
 
-def create_lang_nlp(spacy_lang_code):
+def load_lang_nlp(spacy_lang_code):
     """
     Create a spaCy nlp object based on the language.
 
