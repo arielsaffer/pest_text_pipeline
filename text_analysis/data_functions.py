@@ -479,7 +479,7 @@ def test_multiple_models(X, y, models, vectorizer, selection_metric = "fscore", 
 
 # Load the spaCy nlp object based on the language
 
-def load_lang_nlp(spacy_lang_code):
+def load_lang_nlp(lang):
     """
     Create a spaCy nlp object based on the language.
 
@@ -487,177 +487,225 @@ def load_lang_nlp(spacy_lang_code):
         lang (str): The language of the nlp object.
 
     Returns:
-        spacy.lang: The spaCy nlp object.
+        nlp: The spaCy nlp object.
     """
     # Maybe there is a cleaner way to do this?
     if lang == "ca":
-    try:
-        nlp = ca_core_news_md.load()
-    except OSError:
-        spacy.cli.download("ca_core_news_md")
-        nlp = ca_core_news_md.load()
+        try:
+            import ca_core_news_md
+            nlp = ca_core_news_md.load()
+        except OSError:
+            spacy.cli.download("ca_core_news_md")
+            import ca_core_news_md
+            nlp = ca_core_news_md.load()
 
     elif lang == "zh":
         try:
+            import zh_core_news_md
             nlp = zh_core_news_md.load()
         except OSError:
             spacy.cli.download("zh_core_news_md")
+            import zh_core_news_md
             nlp = zh_core_news_md.load()
 
     elif lang == "da":
         try:
+            import da_core_news_md
             nlp = da_core_news_md.load()
         except OSError:
             spacy.cli.download("da_core_news_md")
+            import da_core_news_md
             nlp = da_core_news_md.load()
 
     elif lang == "el":
         try:
+            import el_core_news_md
             nlp = el_core_news_md.load()
         except OSError:
             spacy.cli.download("el_core_news_md")
+            import el_core_news_md
             nlp = el_core_news_md.load()
 
     elif lang == "en":
         try:
+            import en_core_news_md
             nlp = en_core_news_md.load()
         except OSError:
             spacy.cli.download("en_core_news_md")
+            import en_core_news_md
             nlp = en_core_news_md.load()
 
     elif lang == "fi":
         try:
+            import fi_core_news_md
             nlp = fi_core_news_md.load()
         except OSError:
             spacy.cli.download("fi_core_news_md")
+            import fi_core_news_md
             nlp = fi_core_news_md.load()
 
     elif lang == "fr":
         try:
+            import fr_core_news_md
             nlp = fr_core_news_md.load()
         except OSError:
             spacy.cli.download("fr_core_news_md")
+            import fr_core_news_md
             nlp = fr_core_news_md.load()
 
     elif lang == "de":
         try:
+            import de_core_news_md
             nlp = de_core_news_md.load()
         except OSError:
             spacy.cli.download("de_core_news_md")
+            import de_core_news_md
             nlp = de_core_news_md.load()
 
     elif lang == "hr":
         try:
+            import hr_core_news_md
             nlp = hr_core_news_md.load()
         except OSError:
             spacy.cli.download("hr_core_news_md")
+            import hr_core_news_md
             nlp = hr_core_news_md.load()
 
     elif lang == "it":
         try:
+            import it_core_news_md
             nlp = it_core_news_md.load()
         except OSError:
             spacy.cli.download("it_core_news_md")
+            import it_core_news_md
             nlp = it_core_news_md.load()
 
     elif lang == "ja":
         try:
+            import ja_core_news_md
             nlp = ja_core_news_md.load()
         except OSError:
             spacy.cli.download("ja_core_news_md")
+            import ja_core_news_md
             nlp = ja_core_news_md.load()
 
     elif lang == "ko":
         try:
+            import ko_core_news_md
             nlp = ko_core_news_md.load()
         except OSError:
             spacy.cli.download("ko_core_news_md")
+            import ko_core_news_md
             nlp = ko_core_news_md.load()
 
     elif lang == "lt":
         try:
+            import lt_core_news_md
             nlp = lt_core_news_md.load()
         except OSError:
             spacy.cli.download("lt_core_news_md")
+            import lt_core_news_md
             nlp = lt_core_news_md.load()
 
     elif lang == "mk":
         try:
+            import mk_core_news_md
             nlp = mk_core_news_md.load()
         except OSError:
             spacy.cli.download("mk_core_news_md")
+            import mk_core_news_md
             nlp = mk_core_news_md.load()
 
     elif lang == "nl":
         try:
+            import nl_core_news_md
             nlp = nl_core_news_md.load()
         except OSError:
             spacy.cli.download("nl_core_news_md")
+            import nl_core_news_md
             nlp = nl_core_news_md.load()
 
     elif lang == "nb":
         try:
+            import nb_core_news_md
             nlp = nb_core_news_md.load()
         except OSError:
             spacy.cli.download("nb_core_news_md")
+            import nb_core_news_md
             nlp = nb_core_news_md.load()
 
     elif lang == "pl":
         try:
+            import pl_core_news_md
             nlp = pl_core_news_md.load()
         except OSError:
             spacy.cli.download("pl_core_news_md")
+            import pl_core_news_md
             nlp = pl_core_news_md.load()
 
     elif lang == "pt":
         try:
+            import pt_core_news_md
             nlp = pt_core_news_md.load()
         except OSError:
             spacy.cli.download("pt_core_news_md")
+            import pt_core_news_md
             nlp = pt_core_news_md.load()
 
     elif lang == "ro":
         try:
+            import ro_core_news_md
             nlp = ro_core_news_md.load()
         except OSError:
             spacy.cli.download("ro_core_news_md")
+            import ro_core_news_md
             nlp = ro_core_news_md.load()
 
     elif lang == "ru":
         try:
+            import ru_core_news_md
             nlp = ru_core_news_md.load()
         except OSError:
             spacy.cli.download("ru_core_news_md")
+            import ru_core_news_md
             nlp = ru_core_news_md.load()
 
     elif lang == "sl":
         try:
+            import sl_core_news_md
             nlp = sl_core_news_md.load()
         except OSError:
             spacy.cli.download("sl_core_news_md")
+            import sl_core_news_md
             nlp = sl_core_news_md.load()
 
     elif lang == "es":
         try:
+            import es_core_news_md
             nlp = es_core_news_md.load()
         except OSError:
             spacy.cli.download("es_core_news_md")
+            import es_core_news_md
             nlp = es_core_news_md.load()
 
     elif lang == "sv":
         try:
+            import sv_core_news_md
             nlp = sv_core_news_md.load()
         except OSError:
             spacy.cli.download("sv_core_news_md")
+            import sv_core_news_md
             nlp = sv_core_news_md.load()
 
     elif lang == "uk":
         try:
+            import uk_core_news_md
             nlp = uk_core_news_md.load()
         except OSError:
             spacy.cli.download("uk_core_news_md")
+            import uk_core_news_md
             nlp = uk_core_news_md.load()
-
+            
     else:
         try:
             nlp = spacy.load("xx_ent_wiki_sm")
@@ -683,7 +731,6 @@ def get_loc_ents(text, origin = np.nan):
         list: A list of unique locations mentioned in the post.
     """
     # Create NLP object
-    nlp = en_core_web_md.load()
     doc = nlp(text)
     # Get entities
     ents = [ent.text for ent in doc.ents if ent.label_ in ["GPE","LOC"]]
