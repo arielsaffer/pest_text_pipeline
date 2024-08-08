@@ -27,7 +27,6 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 
 # Load language data products
 nltk.download('stopwords')
-nlp = en_core_web_md.load()
 lang_map = pd.read_csv("text_analysis/language_name_map.csv")
 
 ### Helper functions
@@ -705,7 +704,7 @@ def load_lang_nlp(lang):
             spacy.cli.download("uk_core_news_md")
             import uk_core_news_md
             nlp = uk_core_news_md.load()
-            
+
     else:
         try:
             nlp = spacy.load("xx_ent_wiki_sm")
@@ -748,6 +747,15 @@ def get_loc_ents(text, origin = np.nan):
     else:
         ents_country = []
     return ents_unique, ents_multi, ents_country
+
+# Select the most probable location
+# Rules: 
+# 1. If the entity is 3 or fewer characters, use that entity
+# 2. If the entity is an exact match for a country, use that entity
+# 3. Give preference to non-null values from: GeoEntMultiDict, then GeoEntCountryDict then GeoEntDict
+
+def select_location(tmp):
+    return tmp
 
 # Create dictionary of geocoded locations
 
