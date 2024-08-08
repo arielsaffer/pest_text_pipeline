@@ -50,7 +50,7 @@ def map_language(lang_name):
         # If there's no nltk language, removing stopwords will be skipped
         nltk_lang = None
     try: 
-        spacy_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "Spacy_LangCode"].values[0]
+        spacy_code = lang_map.loc[lang_map["OCR_LanguageName"] == lang_name, "spacy_LangCode"].values[0]
     except IndexError:
         # If there's no spaCy code, use the multi-language pipeline
         spacy_code = "xx"
@@ -85,6 +85,7 @@ def pdf_to_text_files(pdf_path, lang = "eng"):
     print(f"Processing {pdf_path} to images...")
     info = pdfinfo_from_path(pdf_path, userpw=None, poppler_path=None)
     maxPages = info["Pages"]
+    digits = len(str(maxPages))
     print(f"Found {maxPages} pages. This document will be processed in {maxPages//10+1} batches of 10 pages.")
     for page in range(1, maxPages+1, 10) : 
         images = convert_from_path(pdf_path, dpi=200, first_page=page, last_page = min(page+10-1,maxPages))
@@ -93,7 +94,7 @@ def pdf_to_text_files(pdf_path, lang = "eng"):
         for pageNum,image in enumerate(images):
             text = pytesseract.image_to_string(image,lang='eng')
             print(f"Converted page {page+pageNum} to text (length = {len(text)})")
-            with open(f'{root_dir}/{file_name[:-4]}_text_files/{file_name[:-4]}_page{page+pageNum}.txt', 'w') as the_file:
+            with open(f'{root_dir}/{file_name[:-4]}_text_files/{file_name[:-4]}_page{str(page+pageNum).zfill(digits)}.txt', 'w') as the_file:
                 the_file.seek(0)
                 the_file.write(text)
 
