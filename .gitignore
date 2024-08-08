@@ -1,5 +1,6 @@
 # Data folder
-data/
+data/*/*.txt
+data/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
