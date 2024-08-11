@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import pandas as pd
 import numpy as np
+import re
 import tomotopy as tp
 import nltk
 import pytesseract
@@ -22,12 +23,15 @@ from sklearn.svm import LinearSVC
 import pickle
 import time
 
-
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
-
 # Load language data products
 nltk.download('stopwords')
-lang_map = pd.read_csv("text_analysis/language_name_map.csv")
+
+# Read the language names map
+try:
+    lang_map = pd.read_csv("text_analysis/language_name_map.csv")
+    # Handle file location issue with Google Colab
+except FileNotFoundError:
+    lang_map = pd.read_csv("pest_text_pipeline/text_analysis/language_name_map.csv")
 
 ### Helper functions
 
@@ -134,8 +138,8 @@ def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
         clean_documents = " ".join(pages)
         # Split into paragraphs as "\n\n"
         clean_documents = clean_documents.split("\n\n")
-        # Remove empty paragraphs
-        clean_documents = [paragraph for paragraph in clean_documents if len(paragraph) > 0]
+        # Remove empty paragraphs and whitespace
+        clean_documents = [paragraph.strip() for paragraph in clean_documents if len(paragraph) > 0]
         # Replace \n with " " in each paragraph
         clean_documents = [paragraph.replace("\n", " ") for paragraph in clean_documents]
     if document_level == "sentence":
@@ -144,9 +148,9 @@ def clean_pdf_text_files(pdf_path, document_level = "paragraph"):
         # Replace \n with " "
         clean_documents = clean_documents.replace("\n", " ")
         # Split the document into sentences
-        clean_documents = clean_documents.split(". ")
+        clean_documents = nltk.sent_tokenize(clean_documents)
         # Remove empty sentences
-        clean_documents = [sentence for sentence in clean_documents if len(sentence) > 0]
+        clean_documents = [sentence.strip() for sentence in clean_documents if len(sentence) > 0]
     clean_documents = pd.Series(clean_documents)
     clean_documents.name = "Text"    
     
@@ -175,7 +179,7 @@ def pdf_to_corpus(pdf_path, document_level = "paragraph", lang = "eng"):
 
 def clean_tweet(text):
     """
-    Clean the given text by removing URLs, mentions, and "RT ".
+    Clean the given text by removing URLs, mentions, the hashtag symbol, and "RT ".
 
     Args:
         text (str): The text to be cleaned.
@@ -183,10 +187,11 @@ def clean_tweet(text):
     Returns:
         str: The cleaned text.
     """
-    text = text.replace(r"http\S+", "")
-    text = text.replace(r"@\S+", "")
-    text = text.replace(r"RT ", "")
-    return text
+    clean_text = re.sub(r"http\S+", "", text)
+    clean_text = re.sub(r"@\S+", "", clean_text)
+    clean_text = re.sub(r"RT ", "", clean_text)
+    clean_text = re.sub("#", "", clean_text)
+    return clean_text.strip()
 
 
 def preprocess_text(text_data, lang = None):
@@ -494,7 +499,7 @@ def load_lang_nlp(lang):
         try:
             import ca_core_news_md
             nlp = ca_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("ca_core_news_md")
             import ca_core_news_md
             nlp = ca_core_news_md.load()
@@ -503,7 +508,7 @@ def load_lang_nlp(lang):
         try:
             import zh_core_news_md
             nlp = zh_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("zh_core_news_md")
             import zh_core_news_md
             nlp = zh_core_news_md.load()
@@ -512,7 +517,7 @@ def load_lang_nlp(lang):
         try:
             import da_core_news_md
             nlp = da_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("da_core_news_md")
             import da_core_news_md
             nlp = da_core_news_md.load()
@@ -521,25 +526,25 @@ def load_lang_nlp(lang):
         try:
             import el_core_news_md
             nlp = el_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("el_core_news_md")
             import el_core_news_md
             nlp = el_core_news_md.load()
 
     elif lang == "en":
         try:
-            import en_core_news_md
-            nlp = en_core_news_md.load()
-        except OSError:
-            spacy.cli.download("en_core_news_md")
-            import en_core_news_md
-            nlp = en_core_news_md.load()
+            import en_core_web_md
+            nlp = en_core_web_md.load()
+        except ModuleNotFoundError:
+            spacy.cli.download("en_core_web_md")
+            import en_core_web_md
+            nlp = en_core_web_md.load()
 
     elif lang == "fi":
         try:
             import fi_core_news_md
             nlp = fi_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("fi_core_news_md")
             import fi_core_news_md
             nlp = fi_core_news_md.load()
@@ -548,7 +553,7 @@ def load_lang_nlp(lang):
         try:
             import fr_core_news_md
             nlp = fr_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("fr_core_news_md")
             import fr_core_news_md
             nlp = fr_core_news_md.load()
@@ -557,7 +562,7 @@ def load_lang_nlp(lang):
         try:
             import de_core_news_md
             nlp = de_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("de_core_news_md")
             import de_core_news_md
             nlp = de_core_news_md.load()
@@ -566,7 +571,7 @@ def load_lang_nlp(lang):
         try:
             import hr_core_news_md
             nlp = hr_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("hr_core_news_md")
             import hr_core_news_md
             nlp = hr_core_news_md.load()
@@ -575,7 +580,7 @@ def load_lang_nlp(lang):
         try:
             import it_core_news_md
             nlp = it_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("it_core_news_md")
             import it_core_news_md
             nlp = it_core_news_md.load()
@@ -584,7 +589,7 @@ def load_lang_nlp(lang):
         try:
             import ja_core_news_md
             nlp = ja_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("ja_core_news_md")
             import ja_core_news_md
             nlp = ja_core_news_md.load()
@@ -593,7 +598,7 @@ def load_lang_nlp(lang):
         try:
             import ko_core_news_md
             nlp = ko_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("ko_core_news_md")
             import ko_core_news_md
             nlp = ko_core_news_md.load()
@@ -602,7 +607,7 @@ def load_lang_nlp(lang):
         try:
             import lt_core_news_md
             nlp = lt_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("lt_core_news_md")
             import lt_core_news_md
             nlp = lt_core_news_md.load()
@@ -611,7 +616,7 @@ def load_lang_nlp(lang):
         try:
             import mk_core_news_md
             nlp = mk_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("mk_core_news_md")
             import mk_core_news_md
             nlp = mk_core_news_md.load()
@@ -620,7 +625,7 @@ def load_lang_nlp(lang):
         try:
             import nl_core_news_md
             nlp = nl_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("nl_core_news_md")
             import nl_core_news_md
             nlp = nl_core_news_md.load()
@@ -629,7 +634,7 @@ def load_lang_nlp(lang):
         try:
             import nb_core_news_md
             nlp = nb_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("nb_core_news_md")
             import nb_core_news_md
             nlp = nb_core_news_md.load()
@@ -638,7 +643,7 @@ def load_lang_nlp(lang):
         try:
             import pl_core_news_md
             nlp = pl_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("pl_core_news_md")
             import pl_core_news_md
             nlp = pl_core_news_md.load()
@@ -647,7 +652,7 @@ def load_lang_nlp(lang):
         try:
             import pt_core_news_md
             nlp = pt_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("pt_core_news_md")
             import pt_core_news_md
             nlp = pt_core_news_md.load()
@@ -656,7 +661,7 @@ def load_lang_nlp(lang):
         try:
             import ro_core_news_md
             nlp = ro_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("ro_core_news_md")
             import ro_core_news_md
             nlp = ro_core_news_md.load()
@@ -665,7 +670,7 @@ def load_lang_nlp(lang):
         try:
             import ru_core_news_md
             nlp = ru_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("ru_core_news_md")
             import ru_core_news_md
             nlp = ru_core_news_md.load()
@@ -674,7 +679,7 @@ def load_lang_nlp(lang):
         try:
             import sl_core_news_md
             nlp = sl_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("sl_core_news_md")
             import sl_core_news_md
             nlp = sl_core_news_md.load()
@@ -683,7 +688,7 @@ def load_lang_nlp(lang):
         try:
             import es_core_news_md
             nlp = es_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("es_core_news_md")
             import es_core_news_md
             nlp = es_core_news_md.load()
@@ -692,7 +697,7 @@ def load_lang_nlp(lang):
         try:
             import sv_core_news_md
             nlp = sv_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("sv_core_news_md")
             import sv_core_news_md
             nlp = sv_core_news_md.load()
@@ -701,7 +706,7 @@ def load_lang_nlp(lang):
         try:
             import uk_core_news_md
             nlp = uk_core_news_md.load()
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("uk_core_news_md")
             import uk_core_news_md
             nlp = uk_core_news_md.load()
@@ -709,15 +714,16 @@ def load_lang_nlp(lang):
     else:
         try:
             nlp = spacy.load("xx_ent_wiki_sm")
-        except OSError:
+        except ModuleNotFoundError:
             spacy.cli.download("xx_ent_wiki_sm")
-            nlp = spacy.load("xx_ent_wiki_sm")
+            import xx_ent_wiki_sm
+            nlp = xx_ent_wiki_sm.load()
 
     return nlp
 
 # Extract location entities from text
 
-def get_loc_ents(text, origin = np.nan):
+def get_loc_ents(text, nlp, origin = np.nan):
     """
     Given a post, return a list of unique locations mentioned in the post.
     This includes: unique entities, entities neighboring entity context, 
