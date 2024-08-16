@@ -1,6 +1,7 @@
 # Data folder
 data/*/*.txt
 data/*.pdf
+data/other/
 
 # Working file
 notebooks/working.ipynb

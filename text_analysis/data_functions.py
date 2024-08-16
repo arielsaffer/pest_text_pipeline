@@ -22,6 +22,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 import pickle
 import time
+import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 # Load language data products
 nltk.download('stopwords')
@@ -175,7 +177,7 @@ def pdf_to_corpus(pdf_path, document_level = "paragraph", lang = "eng"):
 
 ### LDA functions
 
-# Preprocess text data into list of lists of strings
+# Remove decorators from Twitter data (when applicable)
 
 def clean_tweet(text):
     """
@@ -193,6 +195,7 @@ def clean_tweet(text):
     clean_text = re.sub("#", "", clean_text)
     return clean_text.strip()
 
+# Preprocess text data into list of lists of strings
 
 def preprocess_text(text_data, lang = None):
     """
@@ -285,7 +288,6 @@ def text_to_topics(text_data, lang = None, num_topics = 20, num_iter = 10):
     topic_table = get_topics(model)
     return topic_table
 
-
 ### Keyword search functions
 
 def keyword_search(text_data, keywords):
@@ -304,6 +306,47 @@ def keyword_search(text_data, keywords):
     # Search for the keywords in the text data
     df["Keywords Found"] = df["Text"].apply(lambda x: any(keyword in x for keyword in keywords))
     return df.loc[df["Keywords Found"] == True]
+
+### Visualize vocabulary - lexical dispersion plot
+
+def plot_dispersion(text, keywords, title = "Dispersion Plot", color = '#4285f4'):
+    if type(text) == pd.Series:
+        full_text = "\n".join(text).lower()
+    elif type(text) == list:
+        full_text = "\n".join(text).lower()
+    elif type(text) == str:
+        full_text = text.lower()
+    else: 
+        return print("Please provide a string object (text) or a list of strings.")
+    
+    full_text = nltk.Text(nltk.word_tokenize(full_text))
+
+    fig, ax = plt.subplots(figsize=(10,5))
+
+    # For each word, plot the positions on the x-axis and the word at position j on the y-axis
+    for j, key_word in enumerate(keywords):
+        word_positions = []
+        for i, word in enumerate(full_text):
+            if key_word in word:
+                word_positions.append(i)
+
+        word_positions = np.array(word_positions)
+        # Using colors from the Google Ngram plots
+        ax.scatter(word_positions, np.zeros_like(word_positions) + j*3, marker='|', color=color, label=key_word)
+
+    # Set axis labels and title
+    ax.set_yticks(ticks=np.arange(0,len(keywords))*3)
+    ax.set_yticklabels(labels=keywords)
+    ax.ticklabel_format(axis = 'x', style = 'plain')
+    ax.set_ylim(-2, len(keywords)*3)
+
+    ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))
+
+    ax.set_xlabel("Word Position")
+    ax.set_title(title)
+
+    plt.show()
+    return fig
 
 
 #### Pest event functions
