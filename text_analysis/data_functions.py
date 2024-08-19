@@ -1096,14 +1096,16 @@ def expand_geocoder_result(result):
     Returns:
         tuple: A tuple containing the display name, address type, lat, lon, and bounding box.
     """
-
-    return (
-        result.raw["display_name"],
-        result.raw["addresstype"],
-        result.raw["lat"],
-        result.raw["lon"],
-        result.raw["boundingbox"],
-    )
+    try:
+        return (
+            result.raw["display_name"],
+            result.raw["addresstype"],
+            result.raw["lat"],
+            result.raw["lon"],
+            result.raw["boundingbox"],
+        )
+    except AttributeError:
+        return np.nan, np.nan, np.nan, np.nan, np.nan
 
 
 # Geoparse wrapper: combine the above functions to geoparse from text
@@ -1157,13 +1159,16 @@ def geoparse_text(text_corpus, pdf_path, spacy_code, origin=np.nan, prefer=None)
 
     # Extract the data fields from the best location: display_name, addresstype, lat, lon, boundingbox
 
-    (
-        locations_corpus["display_name"],
-        locations_corpus["addresstype"],
-        locations_corpus["lat"],
-        locations_corpus["lon"],
-        locations_corpus["boundingbox"],
-    ) = locations_corpus["best_location"].apply(expand_geocoder_result)
+    locations_corpus["expanded_location"] = locations_corpus["best_location"].apply(expand_geocoder_result)
+
+    locations_corpus["display_name"] = locations_corpus["expanded_location"].apply(lambda x: x[0])
+    locations_corpus["address_type"] = locations_corpus["expanded_location"].apply(lambda x: x[1])
+    locations_corpus["lat"] = locations_corpus["expanded_location"].apply(lambda x: x[2])
+    locations_corpus["lon"] = locations_corpus["expanded_location"].apply(lambda x: x[3])
+    locations_corpus["bounding_box"] = locations_corpus["expanded_location"].apply(lambda x: x[4])
+
+    # Drop expanded locations
+    locations_corpus = locations_corpus.drop(columns=["expanded_location"])
 
     # Return the locations_corpus DataFrame, the geo_loc_dict, and the error_locations list
 
