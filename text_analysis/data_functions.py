@@ -192,8 +192,7 @@ def clean_pdf_text_files(pdf_path, document_level="paragraph"):
         clean_documents = [
             sentence.strip() for sentence in clean_documents if len(sentence) > 0
         ]
-    clean_documents = pd.Series(clean_documents)
-    clean_documents.name = "Text"
+    clean_documents = pd.DataFrame({"Text": clean_documents})
 
     return clean_documents
 
@@ -1159,13 +1158,25 @@ def geoparse_text(text_corpus, pdf_path, spacy_code, origin=np.nan, prefer=None)
 
     # Extract the data fields from the best location: display_name, addresstype, lat, lon, boundingbox
 
-    locations_corpus["expanded_location"] = locations_corpus["best_location"].apply(expand_geocoder_result)
+    locations_corpus["expanded_location"] = locations_corpus["best_location"].apply(
+        expand_geocoder_result
+    )
 
-    locations_corpus["display_name"] = locations_corpus["expanded_location"].apply(lambda x: x[0])
-    locations_corpus["address_type"] = locations_corpus["expanded_location"].apply(lambda x: x[1])
-    locations_corpus["lat"] = locations_corpus["expanded_location"].apply(lambda x: x[2])
-    locations_corpus["lon"] = locations_corpus["expanded_location"].apply(lambda x: x[3])
-    locations_corpus["bounding_box"] = locations_corpus["expanded_location"].apply(lambda x: x[4])
+    locations_corpus["display_name"] = locations_corpus["expanded_location"].apply(
+        lambda x: x[0]
+    )
+    locations_corpus["address_type"] = locations_corpus["expanded_location"].apply(
+        lambda x: x[1]
+    )
+    locations_corpus["lat"] = locations_corpus["expanded_location"].apply(
+        lambda x: x[2]
+    )
+    locations_corpus["lon"] = locations_corpus["expanded_location"].apply(
+        lambda x: x[3]
+    )
+    locations_corpus["bounding_box"] = locations_corpus["expanded_location"].apply(
+        lambda x: x[4]
+    )
 
     # Drop expanded locations
     locations_corpus = locations_corpus.drop(columns=["expanded_location"])
