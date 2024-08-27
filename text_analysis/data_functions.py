@@ -1184,3 +1184,47 @@ def geoparse_text(text_corpus, pdf_path, spacy_code, origin=np.nan, prefer=None)
     # Return the locations_corpus DataFrame, the geo_loc_dict, and the error_locations list
 
     return locations_corpus, geo_loc_dict, error_locations
+
+
+### Plotting functions
+
+# Create a column for display text
+# Keep X words before and after the location
+
+
+def get_context_text(text, loc_name, window):
+    """
+    Get the context text around a location name in a given text.
+
+    Args:
+        text (str): The text to search for the location name.
+        loc_name (str): The location name to search for.
+        window (int): The number of words to include before and after the location name.
+
+    Returns:
+        str: The context text around the location name.
+    """
+
+    # Turn the text into a list of words
+    text = text.split()
+    try:
+        # Find the location in the text (might be a partial match)
+        loc_index = [i for i, word in enumerate(text) if loc_name in word][0]
+        # Get the start and end indices of the context
+        start = max(0, loc_index - window)
+        end = min(len(text), loc_index + window + 1)
+        # Return the context text
+        context_text = (
+            " ".join(text[start : loc_index + 1])
+            + "<br>"
+            + " ".join(text[loc_index + 1 : end])
+        )
+        # Add "..." if the context is not the whole text
+        if start > 0:
+            context_text = "..." + context_text
+        if end < len(text):
+            context_text = context_text + "..."
+        context_text = f"{loc_name}: {context_text}"
+    except:  # Need to figure out why
+        return loc_name
+    return context_text
