@@ -257,14 +257,18 @@ def preprocess_text(text_data, lang=None):
     # Remove stopwords and punctuation
     try:
         stopwords = nltk.corpus.stopwords.words(lang)
-        documents = documents.apply(
-            lambda x: [tok for tok in x if tok.isalnum() and tok not in stopwords]
-        )
-        print("Text data preprocessed (tokenized, lowercased, stopwords removed).\n\n")
     except:
         print(
             f"Stopwords not found for language '{lang}'. Text preprocessed (tokenized and lowercased).\n\n"
         )
+        documents = documents.apply(lambda x: [tok for tok in x if tok.isalnum()])
+        return documents
+
+    documents = documents.apply(
+        lambda x: [tok for tok in x if tok.isalnum() and tok not in stopwords]
+    )
+    print("Text data preprocessed (tokenized, lowercased, stopwords removed).\n\n")
+
     return documents
 
 
@@ -916,7 +920,9 @@ def load_lang_nlp(lang):
             nlp = uk_core_news_md.load()
 
     else:
+        print("Language not found. Loading multi-language pipeline.")
         try:
+            import xx_ent_wiki_sm
             nlp = spacy.load("xx_ent_wiki_sm")
         except ModuleNotFoundError:
             spacy.cli.download("xx_ent_wiki_sm")
